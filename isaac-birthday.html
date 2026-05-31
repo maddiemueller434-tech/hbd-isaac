@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Isaac</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0d0510; overflow:hidden; width:100vw; height:100vh; }
+#c { position:absolute; top:0; left:0; width:100%; height:100%; }
+.ui { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+.hb {
+  font-family:'Dancing Script',cursive;
+  font-size:clamp(24px,4.5vw,50px);
+  color:#FFD95A;
+  letter-spacing:3px;
+  text-shadow:0 0 30px rgba(255,120,0,0.8), 0 2px 6px rgba(0,0,0,0.6);
+  animation:drift 5s ease-in-out infinite;
+  display:block; margin-bottom:4px;
+}
+.name {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(48px,9vw,100px);
+  font-weight:700;
+  color:#FFD95A;
+  letter-spacing:8px;
+  text-transform:uppercase;
+  text-shadow:0 0 50px rgba(255,100,0,0.9), 3px 3px 0 #8B1A00, 0 6px 20px rgba(0,0,0,0.7);
+  animation:glow 3s ease-in-out infinite;
+  display:block; line-height:1;
+}
+.bar {
+  width:260px; height:2px;
+  background:linear-gradient(90deg,transparent,#FF8C00,#FFD700,#FF8C00,transparent);
+  margin:16px auto;
+  animation:shimmer 2.5s ease-in-out infinite;
+}
+@keyframes drift { 0%,100%{transform:translateY(0);opacity:.88} 50%{transform:translateY(-7px);opacity:1} }
+@keyframes glow {
+  0%,100%{text-shadow:0 0 40px rgba(255,100,0,.6), 3px 3px 0 #8B1A00, 0 6px 20px rgba(0,0,0,.7)}
+  50%{text-shadow:0 0 80px rgba(255,140,0,1), 3px 3px 0 #8B1A00, 0 10px 30px rgba(0,0,0,.8)}
+}
+@keyframes shimmer { 0%,100%{opacity:.6;transform:scaleX(.75)} 50%{opacity:1;transform:scaleX(1)} }
+.confetti-wrap { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+.cp {
+  position:absolute;
+  animation:fall var(--d,4s) linear infinite var(--delay,0s);
+  opacity:0;
+}
+@keyframes fall {
+  0%{transform:translateY(-20px) rotate(0deg);opacity:0}
+  8%{opacity:1}
+  92%{opacity:.7}
+  100%{transform:translateY(105vh) rotate(600deg);opacity:0}
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="confetti-wrap" id="conf"></div>
+<div class="ui">
+  <span class="hb">Happy Birthday</span>
+  <div class="bar"></div>
+  <span class="name">Isaac</span>
+  <div class="bar"></div>
+</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const SUN_CYCLE = 18000;
+
+function drawScene(t) {
+  const prog = (t % SUN_CYCLE) / SUN_CYCLE;
+  const sunY = H * (0.72 - 0.30 * Math.sin(prog * Math.PI));
+  const horizY = H * 0.58;
+
+  const sky = ctx.createLinearGradient(0, 0, 0, horizY);
+  if (prog < 0.25) {
+    const p = prog / 0.25;
+    sky.addColorStop(0, lerpColor('#1a0030','#3D0C6B', p));
+    sky.addColorStop(0.3, lerpColor('#6B1A8A','#B52B6E', p));
+    sky.addColorStop(0.65, lerpColor('#C43820','#E85A10', p));
+    sky.addColorStop(1, lerpColor('#E85A10','#FF8C00', p));
+  } else if (prog < 0.55) {
+    const p = (prog - 0.25) / 0.3;
+    sky.addColorStop(0, lerpColor('#3D0C6B','#4A0E1A', p));
+    sky.addColorStop(0.25, lerpColor('#B52B6E','#D42B1A', p));
+    sky.addColorStop(0.55, lerpColor('#E85A10','#FF6600', p));
+    sky.addColorStop(0.8, lerpColor('#FF8C00','#FFB300', p));
+    sky.addColorStop(1, lerpColor('#FFB300','#FFD700', p));
+  } else if (prog < 0.75) {
+    const p = (prog - 0.55) / 0.2;
+    sky.addColorStop(0, lerpColor('#4A0E1A','#1a0030', p));
+    sky.addColorStop(0.3, lerpColor('#D42B1A','#7B1230', p));
+    sky.addColorStop(0.6, lerpColor('#FF6600','#C43820', p));
+    sky.addColorStop(1, lerpColor('#FFD700','#E85A10', p));
+  } else {
+    const p = (prog - 0.75) / 0.25;
+    sky.addColorStop(0, lerpColor('#1a0030','#1a0030', p));
+    sky.addColorStop(0.3, lerpColor('#7B1230','#6B1A8A', p));
+    sky.addColorStop(0.6, lerpColor('#C43820','#B52B6E', p));
+    sky.addColorStop(1, lerpColor('#E85A10','#E85A10', p));
+  }
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, horizY);
+
+  const sunAbove = sunY < horizY;
+  const sunCenterY = sunAbove ? sunY : horizY;
+  const sunR = W * 0.055;
+
+  const glow = ctx.createRadialGradient(W*0.5, sunCenterY, 0, W*0.5, sunCenterY, sunR * 5);
+  glow.addColorStop(0, 'rgba(255,220,80,0.55)');
+  glow.addColorStop(0.3, 'rgba(255,140,0,0.25)');
+  glow.addColorStop(0.7, 'rgba(200,60,0,0.08)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, horizY + 10);
+
+  if (sunAbove) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(W*0.5, sunY, sunR, 0, Math.PI*2);
+    ctx.fillStyle = '#FFE566';
+    ctx.fill();
+    const innerG = ctx.createRadialGradient(W*0.5, sunY, 0, W*0.5, sunY, sunR);
+    innerG.addColorStop(0, 'rgba(255,255,200,0.9)');
+    innerG.addColorStop(0.5, 'rgba(255,210,60,0.4)');
+    innerG.addColorStop(1, 'rgba(255,140,0,0)');
+    ctx.fillStyle = innerG;
+    ctx.arc(W*0.5, sunY, sunR, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const cloud1off = Math.sin(t * 0.0002) * 20;
+  const cloud2off = Math.sin(t * 0.00015 + 1) * 15;
+  drawCloud(ctx, W*0.15 + cloud1off, horizY*0.28, W*0.18, prog);
+  drawCloud(ctx, W*0.72 + cloud2off, horizY*0.18, W*0.14, prog);
+  drawCloud(ctx, W*0.45 + cloud1off*0.5, horizY*0.42, W*0.22, prog);
+
+  const sea = ctx.createLinearGradient(0, horizY, 0, H);
+  sea.addColorStop(0, '#1A0A2E');
+  sea.addColorStop(0.3, '#120820');
+  sea.addColorStop(1, '#080410');
+  ctx.fillStyle = sea;
+  ctx.fillRect(0, horizY, W, H - horizY);
+
+  const refW = sunR * 3.5;
+  for (let i = 0; i < 7; i++) {
+    const ry = horizY + 18 + i * 28;
+    const rw = refW * (1 - i * 0.09) * (0.7 + 0.3 * Math.sin(t*0.002 + i));
+    const rg = ctx.createLinearGradient(W*0.5 - rw, ry, W*0.5 + rw, ry);
+    rg.addColorStop(0, 'rgba(255,200,50,0)');
+    rg.addColorStop(0.5, `rgba(255,200,50,${0.22 - i*0.025})`);
+    rg.addColorStop(1, 'rgba(255,200,50,0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(W*0.5 - rw, ry, rw*2, 10);
+  }
+
+  for (let i = 0; i < 5; i++) {
+    const wy = horizY + 22 + i * 22;
+    const woff = Math.sin(t * 0.0012 + i * 0.9) * 12;
+    ctx.beginPath();
+    ctx.moveTo(0, wy + woff);
+    for (let x = 0; x <= W; x += 50) {
+      ctx.quadraticCurveTo(x+25, wy + woff + Math.sin((x + t*0.4)*0.035)*8, x+50, wy+woff);
+    }
+    const wAlpha = 0.15 - i*0.02;
+    const wc = i < 2 ? `rgba(255,160,50,${wAlpha})` : `rgba(100,50,120,${wAlpha})`;
+    ctx.strokeStyle = wc;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  drawSilhouette(ctx, W, H, horizY);
+}
+
+function drawCloud(ctx, cx, cy, size, prog) {
+  const alpha = 0.18 + 0.12 * Math.sin(prog * Math.PI * 2);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = prog > 0.4 && prog < 0.65 ? '#FFB347' : '#FF7043';
+  for (let i = 0; i < 5; i++) {
+    const ox = (i - 2) * size * 0.22;
+    const oy = Math.abs(i-2) * size * 0.08;
+    const r = size * (0.12 + Math.abs(2-i) * 0.03);
+    ctx.beginPath();
+    ctx.arc(cx + ox, cy + oy, r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawSilhouette(ctx, W, H, horizY) {
+  ctx.fillStyle = '#0a0408';
+  ctx.fillRect(0, horizY - 1, W, H - horizY + 1);
+
+  const buildingData = [
+    {x:0.03,w:0.06,h:0.13},{x:0.1,w:0.05,h:0.09},{x:0.16,w:0.08,h:0.16},
+    {x:0.25,w:0.04,h:0.08},{x:0.3,w:0.07,h:0.11},{x:0.38,w:0.05,h:0.14},
+    {x:0.44,w:0.06,h:0.07},{x:0.51,w:0.05,h:0.12},{x:0.57,w:0.08,h:0.10},
+    {x:0.66,w:0.04,h:0.15},{x:0.71,w:0.07,h:0.09},{x:0.79,w:0.06,h:0.13},
+    {x:0.86,w:0.05,h:0.08},{x:0.92,w:0.07,h:0.11}
+  ];
+  buildingData.forEach(b => {
+    const bx = W * b.x, bw = W * b.w, bh = H * b.h;
+    const by = horizY - bh;
+    ctx.fillRect(bx, by, bw, bh + 2);
+    ctx.beginPath();
+    ctx.arc(bx + bw/2, by, bw*0.5, Math.PI, 0);
+    ctx.fill();
+  });
+
+  drawPalmSil(ctx, W*0.08, horizY, -1, H);
+  drawPalmSil(ctx, W*0.92, horizY, 1, H);
+}
+
+function drawPalmSil(ctx, bx, horizY, dir, H) {
+  ctx.fillStyle = '#0a0408';
+  ctx.save();
+  ctx.translate(bx, horizY);
+  ctx.beginPath();
+  ctx.moveTo(-6, 0);
+  ctx.quadraticCurveTo(-4 + dir*8, -H*0.15, -2 + dir*5, -H*0.28);
+  ctx.quadraticCurveTo(0 + dir*3, -H*0.32, 4, -H*0.30);
+  ctx.quadraticCurveTo(2 + dir*3, -H*0.28, 6, 0);
+  ctx.fill();
+  const fronds = [
+    {ax:-20*dir, ay:-H*0.30, cx:-60*dir, cy:-H*0.36, ex:-90*dir, ey:-H*0.32},
+    {ax:10*dir, ay:-H*0.30, cx:50*dir, cy:-H*0.38, ex:80*dir, ey:-H*0.28},
+    {ax:-10*dir, ay:-H*0.31, cx:-30*dir, cy:-H*0.40, ex:-20*dir, ey:-H*0.38},
+    {ax:0, ay:-H*0.32, cx:20*dir, cy:-H*0.42, ex:10*dir, ey:-H*0.45},
+  ];
+  fronds.forEach(f => {
+    ctx.beginPath();
+    ctx.moveTo(f.ax, f.ay);
+    ctx.quadraticCurveTo(f.cx, f.cy, f.ex, f.ey);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#0a0408';
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function lerpColor(a, b, t) {
+  const ah = a.replace('#',''), bh = b.replace('#','');
+  const ar = parseInt(ah.slice(0,2),16), ag = parseInt(ah.slice(2,4),16), ab = parseInt(ah.slice(4,6),16);
+  const br = parseInt(bh.slice(0,2),16), bg = parseInt(bh.slice(2,4),16), bb = parseInt(bh.slice(4,6),16);
+  const rr = Math.round(ar + (br-ar)*t);
+  const rg = Math.round(ag + (bg-ag)*t);
+  const rb = Math.round(ab + (bb-ab)*t);
+  return `rgb(${rr},${rg},${rb})`;
+}
+
+function animate(t) {
+  ctx.clearRect(0,0,W,H);
+  drawScene(t);
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+const conf = document.getElementById('conf');
+const goldShades = ['#FFD700','#FFC200','#FFE566','#FFAA00','#F5C842','#FFB830'];
+for (let i = 0; i < 40; i++) {
+  const el = document.createElement('div');
+  el.className = 'cp';
+  const size = 6 + Math.random() * 7;
+  const dur = (3.5 + Math.random() * 4.5).toFixed(1);
+  const delay = -(Math.random() * 8).toFixed(2);
+  const col = goldShades[Math.floor(Math.random() * goldShades.length)];
+  const isCircle = Math.random() > 0.45;
+  el.style.cssText = `
+    left:${Math.random()*100}%;
+    width:${size}px; height:${size}px;
+    background:${col};
+    border-radius:${isCircle ? '50%' : '2px'};
+    --d:${dur}s; --delay:${delay}s;
+  `;
+  conf.appendChild(el);
+}
+</script>
+</body>
+</html>
